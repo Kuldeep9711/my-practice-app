@@ -2,7 +2,9 @@
 
 import Button from "@/components/Button";
 import { useState, useEffect } from "react";
-
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from ''
 
 export default function Home() {
   // 1. State with Typescript type
@@ -34,7 +36,7 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true); // show loading while fetching
   const [error, setError] = useState<string | null>(null); // handle fetch errors
 
-  useEffect(() => {
+/*  useEffect(() => {
       const fetchUsers = async () => {
         try {
           setLoading(true);
@@ -57,7 +59,7 @@ export default function Home() {
 
       fetchUsers();
   }, []);  // empty array = run only once on mount
-
+*/
 
   return (
     <main className="min-h-screen flex flex-col items-center bg-gray-50 p-8">
