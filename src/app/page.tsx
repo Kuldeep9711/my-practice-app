@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { email, z } from 'zod'
+import Link from "next/link";
 
 const formSchema = z.object({
   name: z.string()
@@ -156,10 +157,14 @@ export default function Home() {
                {users.map((user) => (
                 <li
                 key={user.id}
-                className="p-4 bg-white rounded-lg shadow-sm border border-gray-200"
+                className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
                 >
-                <p className="font-semibold text-lg text-gray-800">{user.name}</p>
+                  <Link href={`/users/${user.id}`} className="block">
+                <p className="font-semibold text-lg text-blue-700 hover:underline">
+                  {user.name}
+                </p>
                 <p className="text-gray-600">{user.email}</p>
+                </Link>
                 </li>
                ))}
             </ul>
@@ -179,14 +184,14 @@ export default function Home() {
            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             { /* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-900">
                Name 
               </label>
               <input 
               id="name"
               type="text"
               {...register("name")}  // magic: connects to validation
-              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 ${errors.name ? 'border-red-500 ': 'border-gray-300'
+              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${errors.name ? 'border-red-500 ': 'border-gray-300'
                 }`}
               />
               {errors.name && (
@@ -203,7 +208,7 @@ export default function Home() {
                id="email"
                type="email"
                {...register("email")}
-               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-300'
+               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               {errors.email && (
@@ -221,7 +226,7 @@ export default function Home() {
                id="message"
                rows={4}
                {...register("message")}
-               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.message ? 'border-red-500' : 'border-gray-300'
+               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${errors.message ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
               {errors.message && (
