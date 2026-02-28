@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { email, z } from 'zod'
 import Link from "next/link";
 
+
 const formSchema = z.object({
   name: z.string()
   .min(3, { message: "Name must be at least 3 characters" })
@@ -24,11 +25,27 @@ const formSchema = z.object({
 // Typescript type from schema (auto-generated magin!)
 type FormData = z.infer<typeof  formSchema>
 
+const COUNTER_KEY = 'practice-counter-value';
 
 export default function Home() {
-  // 1. State with Typescript type
-  const [count, setCount] = useState<number>(0);
- // const [step, setStep] = useState<number>(1);
+  
+  const [count, setCount] = useState<number>(() => {
+    // This function runs only once when the component first mounts
+    if (typeof window !== 'undefined') {              // ← projects from server-side crash
+      const saved = localStorage.getItem(COUNTER_KEY);
+      return saved !== null ? Number(saved) : 0;      // if exists → use it, else 0
+    }
+    return 0;                                         // safe default during SSR
+  });
+
+  // other states like users, form data, etc.
+
+   useEffect(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(COUNTER_KEY, String(count));
+      }
+    }, [count]);
+
 
   // 2. Handler functions (also typed)
   const handleIncrement = () => {
@@ -66,7 +83,7 @@ export default function Home() {
           if (!response.ok) {
             throw new Error('Failed to fetch users');
           }
-
+       
           const data: User[] = await response.json(); // type the data!
           setUsers(data.slice(0, 5));                 // show only first 5 to keep it simple
         } catch (err) {

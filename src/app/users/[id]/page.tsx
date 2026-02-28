@@ -25,15 +25,16 @@ async function getUser(id: string): Promise<User | null> {
     }
 }
 
-export default async function UserDetails({ params }: { params: { id: string } }) {
-    const user = await getUser(params.id)
+export default async function UserDetails({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const user = await getUser(id);
 
     if (!user) {
         return (
             <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50">
              <h2 className="text-4xl font-bold text-red-600 mb-4">User Not Found</h2>
              <p className="text-lg text-gray-600 mb-8">
-                No user with ID {params.id}
+                No user with ID {id}
              </p>
              <Link href="/" className="text-blue-600 hover:underline">
                  ← Back to Home 
@@ -48,7 +49,7 @@ export default async function UserDetails({ params }: { params: { id: string } }
                User Details: {user.name}
             </h1>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-lg">
+            <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-lg text-gray-900">
               <p className="text-lg mb-2">
                 <strong>ID:</strong> {user.id}
               </p>
