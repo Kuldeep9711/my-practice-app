@@ -9,6 +9,7 @@ import Link from "next/link";
 import { tr } from "zod/locales";
 
 
+
 const formSchema = z.object({
   name: z.string()
   .min(3, { message: "Name must be at least 3 characters" })
@@ -26,14 +27,45 @@ const formSchema = z.object({
 // Typescript type from schema (auto-generated magin!)
 type FormData = z.infer<typeof  formSchema>
 
+// Todo item shape
+ interface Todo {
+  id: string;
+  text: string;
+  done: boolean;
+ }
+
+
 const COUNTER_KEY = 'practice-counter-value';
+const TODOS_KEY = 'practice-todos-list';
 
 export default function Home() {
   
   const [count, setCount] = useState<number>(0); 
     const [mounted, setMounted] = useState(false);
-    // This function runs only once when the component first mounts
+    const [todos, setTodos] = useState<Todo[]>([]);
+    
+    useEffect(() => {
+      setMounted(true);
 
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem(TODOS_KEY);
+        if (saved) {
+          try {
+            setTodos(JSON.parse(saved));
+          } catch (e) {
+            console.error("Failed to parse saved todos", e);
+          }
+        }
+      }
+    }, []);
+
+    useEffect(() => {
+      if (mounted && typeof window !== 'undefined') {
+        localStorage.setItem(TODOS_KEY, JSON.stringify(todos));
+      }
+    }, [todos, mounted]);
+    
+    // This function runs only once when the component first mounts
     useEffect(() => {
       setMounted(true);
     
@@ -269,6 +301,45 @@ export default function Home() {
              {isSubmitting ?  'Sending...': 'Submit'}
             </button>
            </form>
+      </section>
+
+      <section className="w-full max-w-lg mt-12 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
+        <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-gray-100">
+            Todo List 
+        </h2>
+
+        <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const input = e.currentTarget.elements.namedItem('todoInput') as HTMLInputElement;
+          const text = input.value.trim();
+
+          if (!text) return;
+
+          const newTodo: Todo = {
+            id: crypto.randomUUID(),     // modern unique ID (or Date.now().toString())
+            text,
+            done: false,
+          }
+
+          setTodos((prev) => [...prev, newTodo]);
+          input.value = '';    // clear input
+        }}
+        className="flex gap-2 mb-6"
+        >
+          <input 
+           name="todoInput"
+           type="text"
+           placeholder="What needs to be done?"
+           className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+          />
+          <button
+          type="submit"
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+           Add 
+          </button>
+        </form>
       </section>
 
       <p className="mt-16 text-gray-500 text-sm">
