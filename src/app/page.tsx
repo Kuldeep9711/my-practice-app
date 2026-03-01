@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { email, z } from 'zod'
 import Link from "next/link";
 import { tr } from "zod/locales";
+import { todo } from "node:test";
 
 
 
@@ -340,6 +341,52 @@ export default function Home() {
            Add 
           </button>
         </form>
+
+        <div className="space-y-3">
+        {todos.length === 0 ? (
+          <p className="text-center text-gray-500 dark:text-gray-400">
+          No todos yet - add one above!
+          </p>
+        ): (
+          todos.map((todo) => (
+            <div 
+            key={todo.id}
+            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600"
+            >
+            <div className="flex items-center gap-3 flex-1">
+             <input 
+             type="checkbox"
+             checked={todo.done}
+             onChange={() => 
+              setTodos((prev) =>
+              prev.map((t) => 
+              t.id === todo.id ? { ...t, done: !t.done } : t
+              )
+              )
+             }
+             className="h-5 w-5 text-blue-600 rounded"
+             />
+             <span
+             className={`flex-1 ${
+              todo.done ? 'line-through text-gray-500 dark:text-gray-400' : ''
+              }`}
+             >
+             {todo.text}
+             </span>
+              </div>
+
+              <button
+              onClick={() =>
+               setTodos((prev) => prev.filter((t) => t.id !== todo.id))
+              }
+              className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
+              >
+              Delete 
+              </button>
+              </div>
+          ))
+        )}
+        </div>
       </section>
 
       <p className="mt-16 text-gray-500 text-sm">
