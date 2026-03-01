@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { email, z } from 'zod'
 import Link from "next/link";
+import { tr } from "zod/locales";
 
 
 const formSchema = z.object({
@@ -29,22 +30,30 @@ const COUNTER_KEY = 'practice-counter-value';
 
 export default function Home() {
   
-  const [count, setCount] = useState<number>(() => {
+  const [count, setCount] = useState<number>(0); 
+    const [mounted, setMounted] = useState(false);
     // This function runs only once when the component first mounts
-    if (typeof window !== 'undefined') {              // ← projects from server-side crash
+
+    useEffect(() => {
+      setMounted(true);
+    
+
+    if (typeof window !== 'undefined') {            
       const saved = localStorage.getItem(COUNTER_KEY);
-      return saved !== null ? Number(saved) : 0;      // if exists → use it, else 0
+     if (saved !== null) {
+        setCount(Number(saved));
+     }    
     }
-    return 0;                                         // safe default during SSR
-  });
+    }, []);     
+ 
 
   // other states like users, form data, etc.
 
    useEffect(() => {
-      if (typeof window !== 'undefined') {
+      if (mounted && typeof window !== 'undefined') {
         localStorage.setItem(COUNTER_KEY, String(count));
       }
-    }, [count]);
+    }, [count, mounted]);
 
 
   // 2. Handler functions (also typed)
