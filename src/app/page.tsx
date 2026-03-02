@@ -9,7 +9,17 @@ import Link from "next/link";
 import { tr } from "zod/locales";
 import { todo } from "node:test";
 
+// Todo form schema (seperate from contact form!)
 
+
+
+const todoSchema = z.object({
+  text: z.string()
+  .min(3, { message: "Todo must be at least 3 characters" })
+  .max(100, { message: "Todo is too long" }),
+});
+
+  type TodoFormData = z.infer<typeof todoSchema>;
 
 const formSchema = z.object({
   name: z.string()
@@ -26,10 +36,12 @@ const formSchema = z.object({
 })
 
 // Typescript type from schema (auto-generated magin!)
-type FormData = z.infer<typeof  formSchema>
+
+
+ type FormData = z.infer<typeof  formSchema>
 
 // Todo item shape
- interface Todo {
+ interface Todo { 
   id: string;
   text: string;
   done: boolean;
@@ -44,6 +56,8 @@ export default function Home() {
   const [count, setCount] = useState<number>(0); 
     const [mounted, setMounted] = useState(false);
     const [todos, setTodos] = useState<Todo[]>([]);
+
+   
     
     useEffect(() => {
       setMounted(true);
@@ -110,6 +124,7 @@ export default function Home() {
     // add more fields if you want (phone, etc.)
   }
 
+
   const [users, setUsers] = useState<User[]>([]);  // empty array initially
   const [loading, setLoading] = useState<boolean>(true); // show loading while fetching
   const [error, setError] = useState<string | null>(null); // handle fetch errors
@@ -148,7 +163,25 @@ export default function Home() {
     mode: 'onChange', // validate as user types (good for UX)
   })
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
+ // const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
+
+   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } =  useForm<TodoFormData>({
+  resolver: zodResolver(todoSchema),
+  defaultValues: { text: '' },
+});
+
+
+   const onAddTodo = (data: TodoFormData) => {
+    const newTodo: Todo = {
+      id: crypto.randomUUID(),
+      text: data.text.trim(),
+      done: false,
+    };
+    setTodos((prev) => [...prev, newTodo]);
+    reset();  // clear the input automatically
+   }
+
+
 
   // Submit handler (runs only if validation passes)
   const onSubmit = (data: FormData) => {
@@ -309,38 +342,29 @@ export default function Home() {
             Todo List 
         </h2>
 
-        <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const input = e.currentTarget.elements.namedItem('todoInput') as HTMLInputElement;
-          const text = input.value.trim();
-
-          if (!text) return;
-
-          const newTodo: Todo = {
-            id: crypto.randomUUID(),     // modern unique ID (or Date.now().toString())
-            text,
-            done: false,
-          }
-
-          setTodos((prev) => [...prev, newTodo]);
-          input.value = '';    // clear input
-        }}
-        className="flex gap-2 mb-6"
-        >
+      <form onSubmit={handleSubmit(onAddTodo)} className="flex gap-2 mb-6">
+        <div className="flex-1">
           <input 
-           name="todoInput"
-           type="text"
-           placeholder="What needs to be done?"
-           className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+          {...register("text")}
+          placeholder="What needs to be done?"
+          className={`flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 w-full ${
+            errors.text ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            }`}
           />
-          <button
-          type="submit"
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-           Add 
-          </button>
-        </form>
+          {errors.text && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+             {errors.text.message}
+            </p>
+          )}
+        </div>
+
+        <button
+        type="submit"
+        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+         Add 
+        </button>
+      </form>
 
         <div className="space-y-3">
         {todos.length === 0 ? (
