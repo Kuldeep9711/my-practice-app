@@ -11,8 +11,6 @@ import { todo } from "node:test";
 
 // Todo form schema (seperate from contact form!)
 
-
-
 const todoSchema = z.object({
   text: z.string()
   .min(3, { message: "Todo must be at least 3 characters" })
@@ -53,12 +51,11 @@ const TODOS_KEY = 'practice-todos-list';
 
 export default function Home() {
   
-  const [count, setCount] = useState<number>(0); 
+    const [count, setCount] = useState<number>(0); 
     const [mounted, setMounted] = useState(false);
     const [todos, setTodos] = useState<Todo[]>([]);
 
    
-    
     useEffect(() => {
       setMounted(true);
 
@@ -153,7 +150,7 @@ export default function Home() {
       fetchUsers();
   }, []);  // empty array = run only once on mount
 
-  const form = useForm<FormData>({
+  const contactForm = useForm<FormData>({
     resolver: zodResolver(formSchema), // connect zod validation
     defaultValues: {
       name: '',
@@ -163,13 +160,20 @@ export default function Home() {
     mode: 'onChange', // validate as user types (good for UX)
   })
 
+  const todoForm = useForm<TodoFormData>({
+    resolver: zodResolver(todoSchema),
+    defaultValues: { text: ''},
+  });
+
  // const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
 
-   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } =  useForm<TodoFormData>({
+
+
+/*   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } =  useForm<TodoFormData>({
   resolver: zodResolver(todoSchema),
   defaultValues: { text: '' },
-});
-
+}); 
+*/
 
    const onAddTodo = (data: TodoFormData) => {
     const newTodo: Todo = {
@@ -178,7 +182,7 @@ export default function Home() {
       done: false,
     };
     setTodos((prev) => [...prev, newTodo]);
-    reset();  // clear the input automatically
+    todoForm.reset();  // clear the input automatically
    }
 
 
@@ -225,15 +229,7 @@ export default function Home() {
       </div>
      </section>
 
-       { /* <input
-
-        type="number"
-        value={step}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStep(Number(e.target.value))}
-        className="w-20 px-2 py-1 border rounded text-center text-black mt-2"
-        min={1}
-      />  */}
-
+      
      {/* New Day 2: Fetched Users Section */}
       <section className="w-full max-w-2xl">
          <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
@@ -273,7 +269,7 @@ export default function Home() {
              Contact Form Practice 
            </h2>
 
-           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+           <form onSubmit={contactForm.handleSubmit(onSubmit)} className="space-y-6">
             { /* Name Field */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-900">
@@ -282,12 +278,12 @@ export default function Home() {
               <input 
               id="name"
               type="text"
-              {...register("name")}  // magic: connects to validation
-              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${errors.name ? 'border-red-500 ': 'border-gray-300'
+              {...contactForm.register("name")}  // magic: connects to validation
+              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${contactForm.formState.errors.name ? 'border-red-500 ': 'border-gray-300'
                 }`}
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+              {contactForm.formState.errors.name && (
+                <p className="mt-1 text-sm text-red-600">{contactForm.formState.errors.name.message}</p>
               )}
             </div>
 
@@ -299,12 +295,12 @@ export default function Home() {
               <input 
                id="email"
                type="email"
-               {...register("email")}
-               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${errors.email ? 'border-red-500' : 'border-gray-300'
+               {...contactForm.register("email")}
+               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${contactForm.formState.errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              {contactForm.formState.errors.email && (
+                <p className="mt-1 text-sm text-red-600">{contactForm.formState.errors.email.message}</p>
 
               )}
             </div>
@@ -317,22 +313,22 @@ export default function Home() {
               <textarea 
                id="message"
                rows={4}
-               {...register("message")}
-               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${errors.message ? 'border-red-500' : 'border-gray-300'
+               {...contactForm.register("message")}
+               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 ${contactForm.formState.errors.message ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
-              {errors.message && (
-                <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
+              {contactForm.formState.errors.message && (
+                <p className="mt-1 text-sm text-red-600">{contactForm.formState.errors.message.message}</p>
               )}
             </div>
 
             { /* submit button */}
             <button 
             type="submit"
-            disabled={isSubmitting}
+            disabled={contactForm.formState.isSubmitting}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
             >
-             {isSubmitting ?  'Sending...': 'Submit'}
+             {contactForm.formState.isSubmitting ?  'Sending...': 'Submit'}
             </button>
            </form>
       </section>
@@ -342,18 +338,18 @@ export default function Home() {
             Todo List 
         </h2>
 
-      <form onSubmit={handleSubmit(onAddTodo)} className="flex gap-2 mb-6">
+      <form onSubmit={todoForm.handleSubmit(onAddTodo)} className="flex gap-2 mb-6">
         <div className="flex-1">
           <input 
-          {...register("text")}
+          {...todoForm.register("text")}
           placeholder="What needs to be done?"
           className={`flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 w-full ${
-            errors.text ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            todoForm.formState.errors.text ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
             }`}
           />
-          {errors.text && (
+          {todoForm.formState.errors.text && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-             {errors.text.message}
+             {todoForm.formState.errors.text.message}
             </p>
           )}
         </div>
