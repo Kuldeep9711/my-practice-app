@@ -6,6 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from 'zod'
 import Link from "next/link";
+import { useTodos } from "@/hooks/useTodos";
+import TodoForm from "@/components/TodoForm";
+import TodoList from "@/components/TodoList";
 
 
 // Todo form schema (seperate from contact form!)
@@ -32,7 +35,7 @@ const formSchema = z.object({
     .optional(),   // optional field example
 })
 
-// Typescript type from schema (auto-generated magin!)
+// Typescript type from schema (auto-generated margin!)
 
 
 type FormData = z.infer<typeof formSchema>
@@ -51,52 +54,7 @@ const TODOS_KEY = 'practice-todos-list';
 export default function Home() {
 
   const [count, setCount] = useState<number>(0);
-  const [mounted, setMounted] = useState(false);
-  const [todos, setTodos] = useState<Todo[]>([]);
 
-
-  useEffect(() => {
-    setMounted(true);
-
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(TODOS_KEY);
-      if (saved) {
-        try {
-          setTodos(JSON.parse(saved));
-        } catch (e) {
-          console.error("Failed to parse saved todos", e);
-        }
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (mounted && typeof window !== 'undefined') {
-      localStorage.setItem(TODOS_KEY, JSON.stringify(todos));
-    }
-  }, [todos, mounted]);
-
-  // This function runs only once when the component first mounts
-  useEffect(() => {
-    setMounted(true);
-
-
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(COUNTER_KEY);
-      if (saved !== null) {
-        setCount(Number(saved));
-      }
-    }
-  }, []);
-
-
-  // other states like users, form data, etc.
-
-  useEffect(() => {
-    if (mounted && typeof window !== 'undefined') {
-      localStorage.setItem(COUNTER_KEY, String(count));
-    }
-  }, [count, mounted]);
 
 
   // 2. Handler functions (also typed)
@@ -159,22 +117,16 @@ export default function Home() {
     mode: 'onChange', // validate as user types (good for UX)
   })
 
-  const todoForm = useForm<TodoFormData>({
-    resolver: zodResolver(todoSchema),
-    defaultValues: { text: '' },
-  });
 
-
-  const onAddTodo = (data: TodoFormData) => {
-    const newTodo: Todo = {
-      id: crypto.randomUUID(),
-      text: data.text.trim(),
-      done: false,
-    };
-    setTodos((prev) => [...prev, newTodo]);
-    todoForm.reset();  // clear the input automatically
-  }
-
+  const {
+    todos,
+    addTodo,
+    toggleTodo,
+    deleteTodo,
+    editTodo,
+    clearCompleted,
+    mounted,
+  } = useTodos();
 
 
   // Submit handler (runs only if validation passes)
@@ -325,76 +277,26 @@ export default function Home() {
 
       <section className="w-full max-w-lg mt-12 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-gray-100">
-          Todo List
+          My Todo App
         </h2>
 
-        <form onSubmit={todoForm.handleSubmit(onAddTodo)} className="flex gap-2 mb-6">
-          <div className="flex-1">
-            <input
-              {...todoForm.register("text")}
-              placeholder="What needs to be done?"
-              className={`flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 w-full ${todoForm.formState.errors.text ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                }`}
+        {mounted ? (
+          <div className="w-full max-w-2xl">
+            <TodoForm onAdd={addTodo} />
+
+            <TodoList
+              todos={todos}
+              onToggle={toggleTodo}
+              onDelete={deleteTodo}
+              onEdit={editTodo}
+              clearCompleted={clearCompleted}
             />
-            {todoForm.formState.errors.text && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {todoForm.formState.errors.text.message}
-              </p>
-            )}
           </div>
-
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Add
-          </button>
-        </form>
-
-        <div className="space-y-3">
-          {todos.length === 0 ? (
-            <p className="text-center text-gray-500 dark:text-gray-400">
-              No todos yet - add one above!
-            </p>
-          ) : (
-            todos.map((todo) => (
-              <div
-                key={todo.id}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600"
-              >
-                <div className="flex items-center gap-3 flex-1">
-                  <input
-                    type="checkbox"
-                    checked={todo.done}
-                    onChange={() =>
-                      setTodos((prev) =>
-                        prev.map((t) =>
-                          t.id === todo.id ? { ...t, done: !t.done } : t
-                        )
-                      )
-                    }
-                    className="h-5 w-5 text-blue-600 rounded"
-                  />
-                  <span
-                    className={`flex-1 ${todo.done ? 'line-through text-gray-500 dark:text-gray-400' : ''
-                      }`}
-                  >
-                    {todo.text}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() =>
-                    setTodos((prev) => prev.filter((t) => t.id !== todo.id))
-                  }
-                  className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
-                >
-                  Delete
-                </button>
-              </div>
-            ))
-          )}
-        </div>
+        ) : (
+          <p className="text-lg text-gray-500 dark:text-gray-400">
+            Loading your todos...
+          </p>
+        )}
       </section>
 
       <p className="mt-16 text-gray-500 text-sm">
